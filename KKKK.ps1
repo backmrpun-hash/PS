@@ -1,7 +1,8 @@
 $ErrorActionPreference = "SilentlyContinue"
 
 # --- [ CONFIGURATION ] ---
-$ApiUrl = "https://script.google.com/macros/s/AKfycbxdsCcD60qopkxyp-xPnw2Nd1vPfaZk7QqgzL68tfxW87z_fnZUevt_UinNlu8Ccu0pcg/exec"
+# URL ของคุณที่ระบุโซน asia-southeast1 และชี้ไปที่ node 'licenses'
+$DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 
 function Get-HWID {
     return (Get-CimInstance Win32_ComputerSystemProduct).UUID
@@ -10,35 +11,49 @@ function Get-HWID {
 
 # --- [ LOGIN SYSTEM ] ---
 Clear-Host
-$key = Read-Host "Enter Key"
+Write-Host "--- SECXION SYSTEM LOGIN ---" -ForegroundColor Yellow
+$key = Read-Host "Enter License Key"
 $myHwid = Get-HWID
 
-Write-Host "Verifying License..." -ForegroundColor Cyan
+Write-Host "Connecting to Firebase..." -ForegroundColor Cyan
 
 try {
-    # ส่ง Key และ HWID ไปตรวจสอบที่ Google Sheets
-    $response = Invoke-RestMethod -Uri "$($ApiUrl)?key=$key&hwid=$myHwid" -Method Get
-    
-    if ($response -eq "success") {
-        Write-Host "Login Success!" -ForegroundColor Green
-        Start-Sleep 1
-    } elseif ($response -eq "hwid_mismatch") {
-        Write-Host "Wrong HWID! This key is locked to another PC." -ForegroundColor Red
-        Start-Sleep 2
-        exit
-    } elseif ($response -eq "expired") {
-        Write-Host "Key Expired or Inactive!" -ForegroundColor Red
-        Start-Sleep 2
-        exit
-    } else {
-        Write-Host "Invalid Key!" -ForegroundColor Red
-        Start-Sleep 2
-        exit
+    # ดึงข้อมูลคีย์จาก Firebase
+    $data = Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Get
+
+    # 1. ตรวจสอบว่ามีคีย์นี้ในระบบไหม
+    if ($null -eq $data) {
+        Write-Host "Error: Key not found in database!" -ForegroundColor Red
+        Start-Sleep 2 ; exit
     }
+
+    # 2. ตรวจสอบสถานะการใช้งาน
+    if ($data.status -ne "active") {
+        Write-Host "Error: This key has been disabled or expired." -ForegroundColor Red
+        Start-Sleep 2 ; exit
+    }
+
+    # 3. ระบบล็อค HWID
+    if ([string]::IsNullOrEmpty($data.hwid)) {
+        # ถ้าในฐานข้อมูลยังไม่มี HWID (คีย์ใหม่) ให้บันทึก HWID เครื่องนี้ลงไป
+        $payload = @{ hwid = $myHwid } | ConvertTo-Json
+        Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Patch -Body $payload
+        Write-Host "Success: HWID registered to this PC!" -ForegroundColor Green
+    } 
+    elseif ($data.hwid -ne $myHwid) {
+        # ถ้ามี HWID อยู่แล้วแต่ไม่ตรงกับเครื่องที่รัน
+        Write-Host "Error: HWID Mismatch! Key is locked to another PC." -ForegroundColor Red
+        Write-Host "Contact Admin to reset your HWID." -ForegroundColor Gray
+        Start-Sleep 3 ; exit
+    }
+
+    Write-Host "Access Granted! Welcome." -ForegroundColor Green
+    Start-Sleep 1
+
 } catch {
-    Write-Host "Server Error! Please check your internet." -ForegroundColor Red
-    Start-Sleep 2
-    exit
+    Write-Host "Connection Error! Check your internet or Firebase Rules." -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Gray
+    Start-Sleep 3 ; exit
 }
 # -------------------------
 

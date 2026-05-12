@@ -103,10 +103,11 @@ while ($true) {
         }
         pause
     }
-    elseif ($choice -eq "0") {
-        # --- [ โค้ดที่สั่งรันเมื่อกดออก ] ---
-        $p_history = "$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
-        if(Test-Path $p_history){ Remove-Item $p_history -Force }
+  elseif ($choice -eq "0") {
+        # คำสั่งล้างข้อความในไฟล์ประวัติ (ไฟล์ยังอยู่แต่ข้อมูลข้างในหายหมด)
+        $p="$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
+        if(Test-Path $p){ Clear-Content $p -Force }
+        
         exit
     }
 }

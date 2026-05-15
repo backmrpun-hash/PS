@@ -8,7 +8,8 @@ Write-Host "[*] Downloading OmniBoostX from GitHub..." -ForegroundColor Cyan
 try {
     Invoke-WebRequest -Uri $GithubDllUrl -OutFile $LocalDllPath -ErrorAction Stop
     Write-Host "[+] Download Complete: $LocalDllPath" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "[-] Failed to download DLL. Check your URL!" -ForegroundColor Red
     return
 }
@@ -59,6 +60,7 @@ $hThread = $Kernel32::CreateRemoteThread($hProcess, [IntPtr]::Zero, 0, $LoadLib,
 
 if ($hThread -ne [IntPtr]::Zero) {
     Write-Host "[+++] OMNIBOOSTX INJECTED SUCCESSFULLY!" -ForegroundColor Green -BackgroundColor DarkGreen
-} else {
+}
+else {
     Write-Host "[-] Injection failed." -ForegroundColor Red
 }

@@ -1,5 +1,5 @@
 # --- CONFIGURATION ---
-$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/CANDY-AOBPatcherDLL.dll"
+$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/d.dll"
 $LocalDllPath = "$env:TEMP\version.dll"
 # ---------------------
 

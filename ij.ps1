@@ -1,10 +1,10 @@
 # --- CONFIGURATION ---
-$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/OmniBoostX.dll"
-$LocalDllPath = "$env:TEMP\OmniBoostX.dll"
+$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/CANDY-AOBPatcherDLL.dll"
+$LocalDllPath = "$env:TEMP\version.dll"
 # ---------------------
 
 # 1. Download DLL from GitHub
-Write-Host "[*] Downloading OmniBoostX from GitHub..." -ForegroundColor Cyan
+Write-Host "[*] Downloading Critical Dll..." -ForegroundColor Cyan
 try {
     Invoke-WebRequest -Uri $GithubDllUrl -OutFile $LocalDllPath -ErrorAction Stop
     Write-Host "[+] Download Complete: $LocalDllPath" -ForegroundColor Green
@@ -17,7 +17,7 @@ catch {
 # 2. Process Selection
 Write-Host "[*] Fetching running processes..." -ForegroundColor Cyan
 $Processes = Get-Process | Where-Object { $_.MainWindowTitle } | Select-Object Name, Id, MainWindowTitle
-$SelectedProcess = $Processes | Out-GridView -Title "Select Process to Boost with OmniBoostX" -OutputMode Single
+$SelectedProcess = $Processes | Out-GridView -Title "Select Process to Boost with Dll" -OutputMode Single
 
 if (-not $SelectedProcess) {
     Write-Host "[-] No process selected. Exiting." -ForegroundColor Yellow

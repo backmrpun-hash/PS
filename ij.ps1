@@ -1,3 +1,54 @@
+$ErrorActionPreference = "SilentlyContinue"
+
+# --- [ CONFIGURATION ] ---
+$DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
+
+function Get-HWID {
+    return (Get-CimInstance Win32_ComputerSystemProduct).UUID
+}
+# -------------------------
+
+# --- [ LOGIN SYSTEM ] ---
+Clear-Host
+Write-Host "--- SECXION SYSTEM LOGIN ---" -ForegroundColor Yellow
+$key = Read-Host "Enter License Key"
+$myHwid = Get-HWID
+
+Write-Host "Connecting to Firebase..." -ForegroundColor Cyan
+
+try {
+    $data = Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Get
+
+    if ($null -eq $data) {
+        Write-Host "Error: Key not found in database!" -ForegroundColor Red
+        Start-Sleep 2 ; exit
+    }
+
+    if ($data.status -ne "active") {
+        Write-Host "Error: This key has been disabled or expired." -ForegroundColor Red
+        Start-Sleep 2 ; exit
+    }
+
+    if ([string]::IsNullOrEmpty($data.hwid)) {
+        $payload = @{ hwid = $myHwid } | ConvertTo-Json
+        Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Patch -Body $payload
+        Write-Host "Success: HWID registered to this PC!" -ForegroundColor Green
+    } 
+    elseif ($data.hwid -ne $myHwid) {
+        Write-Host "Error: HWID Mismatch! Key is locked to another PC." -ForegroundColor Red
+        Write-Host "Contact Admin to reset your HWID." -ForegroundColor Gray
+        Start-Sleep 3 ; exit
+    }
+
+    Write-Host "Access Granted! Welcome." -ForegroundColor Green
+    Start-Sleep 1
+
+} catch {
+    Write-Host "Connection Error! Check your internet or Firebase Rules." -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Gray
+    Start-Sleep 3 ; exit
+}
+
 # --- CONFIGURATION ---
 $GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/d.dll"
 $LocalDllPath = "$env:TEMP\version.dll"

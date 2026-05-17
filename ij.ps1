@@ -50,7 +50,7 @@ try {
 }
 
 # --- CONFIGURATION ---
-$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/d.dll"
+$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/Reshade.dll"
 $LocalDllPath = "$env:TEMP\version.dll"
 # ---------------------
 

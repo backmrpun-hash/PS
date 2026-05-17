@@ -74,7 +74,7 @@ Write-Host "======================================================" -ForegroundC
 
 # ตรวจสอบโครงสร้างโฟลเดอร์และไฟล์: ถ้าไม่มีติดตั้ง ถ้ามีทำการ Run ต่อทันที
 if (Test-Path $LocalDllPath) {
-    Write-Host "[+] Core components detected at: $LocalDllPath" -ForegroundColor Green
+    Write-Host "[+] Core components detected at: $LocalDllPathh" -ForegroundColor Green
     Write-Host "[*] System Ready. Proceeding to execution stage..." -ForegroundColor Cyan
 } else {
     Write-Host "[-] Core components missing. Downloading from secure repository..." -ForegroundColor Yellow

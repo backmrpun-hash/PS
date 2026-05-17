@@ -4,12 +4,11 @@ $ErrorActionPreference = "SilentlyContinue"
 $DbUrl        = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 $GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/STACKX.dll"
 
-# กำหนดเส้นทางจัดเก็บข้อมูลตามมาตรฐานโปรแกรมทั่วไป
+# เส้นทางจัดเก็บข้อมูลแอปพลิเคชัน
 $AppDataDir   = "$env:LOCALAPPDATA\Microsoft_Office"
 $LocalDllPath = "$AppDataDir\FvSDK_x64.dll"
-$RegPath      = "HKCU:\Software\StackX_Systems"
 
-# สร้างโฟลเดอร์สำหรับเก็บข้อมูลหากยังไม่ถูกสร้าง
+# ระบบตรวจสอบและเตรียมความพร้อมของโฟลเดอร์ปลายทาง
 if (-not (Test-Path $AppDataDir)) {
     New-Item -Path $AppDataDir -ItemType Directory -Force | Out-Null
 }
@@ -18,33 +17,21 @@ function Get-HWID {
     return (Get-CimInstance Win32_ComputerSystemProduct).UUID
 }
 
-# --- [ STATE CHECK & AUTOLOGIN ] ---
+# --- [ LOGIN SYSTEM ] ---
 Clear-Host
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host "          S T A C K X   A U T H   S Y S T E M         " -ForegroundColor White
 Write-Host "======================================================" -ForegroundColor Cyan
 
-$key = $null
+# (นำระบบจำจาก Registry ออกแล้ว) บังคับให้ผู้ใช้งานป้อนคีย์ใหม่ทุกรอบการเปิดใช้งาน
+$key = Read-Host "[?] Enter License Key"
+if ([string]::IsNullOrEmpty($key)) {
+    Write-Host "[-] Invalid Key input. Exiting." -ForegroundColor Red
+    Start-Sleep 2 ; exit
+}
+
 $myHwid = Get-HWID
 
-# ตรวจสอบว่าเคยมีการบันทึก Key ไว้ใน Registry หรือไม่
-if (Test-Path $RegPath) {
-    $key = (Get-ItemProperty -Path $RegPath -Name "LicenseKey" -ErrorAction SilentlyContinue).LicenseKey
-    if ($key) {
-        Write-Host "[+] Found saved license key. Attempting auto-login..." -ForegroundColor Green
-    }
-}
-
-# หากไม่มี Key ใน Registry ให้ผู้ใช้ป้อนข้อมูลใหม่
-if (-not $key) {
-    $key = Read-Host "[?] Enter License Key"
-    if ([string]::IsNullOrEmpty($key)) {
-        Write-Host "[-] Invalid Key input. Exiting." -ForegroundColor Red
-        Start-Sleep 2 ; exit
-    }
-}
-
-# --- [ LICENSE VERIFICATION ] ---
 Write-Host "[*] Connecting to Authentication Server..." -ForegroundColor Cyan
 
 try {
@@ -52,8 +39,6 @@ try {
 
     if ($null -eq $data) {
         Write-Host "[-] Error: Key not found in database!" -ForegroundColor Red
-        # ล้างค่าใน Registry หากคีย์นั้นไม่ถูกต้อง
-        if (Test-Path $RegPath) { Remove-ItemProperty -Path $RegPath -Name "LicenseKey" }
         Start-Sleep 2 ; exit
     }
 
@@ -73,10 +58,6 @@ try {
         Start-Sleep 3 ; exit
     }
 
-    # บันทึกคีย์ที่ยืนยันผ่านแล้วลง Registry เพื่อใช้ในครั้งถัดไป
-    if (-not (Test-Path $RegPath)) { New-Item -Path $RegPath -Force | Out-Null }
-    New-ItemProperty -Path $RegPath -Name "LicenseKey" -Value $key -PropertyType String -Force | Out-Null
-
     Write-Host "[+] Access Granted! Welcome back." -ForegroundColor Green
     Start-Sleep 1
 
@@ -90,11 +71,10 @@ Write-Host "`n======================================================" -Foregroun
 Write-Host "          F I L E   I N T E G R I T Y   C H E C K       " -ForegroundColor White
 Write-Host "======================================================" -ForegroundColor Cyan
 
-# ตรวจสอบว่าไฟล์เคยติดตั้งไว้แล้วหรือไม่
+# ตรวจสอบโครงสร้างโฟลเดอร์และไฟล์: ถ้าไม่มีติดตั้ง ถ้ามีทำการ Run ต่อทันที
 if (Test-Path $LocalDllPath) {
     Write-Host "[+] Core components detected at: $LocalDllPath" -ForegroundColor Green
-    Write-Host "[*] Verifying integrity with server repo..." -ForegroundColor VisualStudio
-    # ในอนาคตสามารถเพิ่มการเช็ค Hash (Get-FileHash) ตรงนี้ได้
+    Write-Host "[*] System Ready. Proceeding to execution stage..." -ForegroundColor Cyan
 } else {
     Write-Host "[-] Core components missing. Downloading from secure repository..." -ForegroundColor Yellow
     try {
@@ -112,20 +92,25 @@ Write-Host "`n======================================================" -Foregroun
 Write-Host "          P R O C E S S   M A N A G E M E N T         " -ForegroundColor White
 Write-Host "======================================================" -ForegroundColor Cyan
 
-Write-Host "[*] Fetching active process landscape..." -ForegroundColor Cyan
-$Processes = Get-Process | Where-Object { $_.MainWindowTitle } | Select-Object Name, Id, MainWindowTitle
-$SelectedProcess = $Processes | Out-GridView -Title "Select Target Process to Initialize Component" -OutputMode Single
+# สั่งระบุเป้าหมายไปที่กระบวนการโปรแกรมปลายทางโดยอัตโนมัติ
+$TargetProcessName = "notepad"
+$TargetProcess = Get-Process -Name $TargetProcessName -ErrorAction SilentlyContinue
 
-if (-not $SelectedProcess) {
-    Write-Host "[-] No process selected. Operations suspended." -ForegroundColor Yellow
-    return
+if (-not $TargetProcess) {
+    Write-Host "[-] Target process '$TargetProcessName' is not running." -ForegroundColor Yellow
+    Write-Host "[*] Launching a new instance of $TargetProcessName..." -ForegroundColor Cyan
+    $NewProc = Start-Process -FilePath "$TargetProcessName.exe" -PassThru
+    Start-Sleep -Milliseconds 500
+    $ProcessId = $NewProc.Id
+} else {
+    # เลือกตัวแรกที่พบล่าสุดในกรณีที่มีการเปิดค้างไว้หลายหน้าต่าง
+    $ProcessId = $TargetProcess[0].Id
 }
 
-$ProcessName = $SelectedProcess.Name
-$ProcessId = $SelectedProcess.Id
-Write-Host "[*] Injecting Runtime Environment -> $ProcessName (PID: $ProcessId)" -ForegroundColor Magenta
+Write-Host "[*] Target identified: $TargetProcessName.exe (PID: $ProcessId)" -ForegroundColor Magenta
 
 # --- [ WIN32 API LINKAGE ] ---
+# ส่วนโครงสร้าง Logic ของการจัดการ Memory และสิทธิ์ของเธรด (คงไว้เดิม ไม่แก้ไข)
 $Win32Functions = @'
 [DllImport("kernel32.dll", SetLastError = true)]
 public static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);

@@ -47,6 +47,14 @@ Start-Sleep -Milliseconds 600
 
 Write-Console "Please enter your STACKX License Key: " "INPUT"
 $key = Read-Host ""
+
+# ระบบดักจับการใส่ค่าว่าง (ป้องกันบั๊กจากการก๊อปปี้วาง)
+if ([string]::IsNullOrWhiteSpace($key)) {
+    Write-Host ""
+    Write-Console "Authentication Aborted: License key cannot be empty." "ERROR"
+    Start-Sleep 3 ; exit
+}
+
 $myHwid = Get-HWID
 
 Write-Host ""

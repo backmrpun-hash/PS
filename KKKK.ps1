@@ -170,9 +170,26 @@ while ($true) {
         Write-Host "  Press any key to return to menu..." -ForegroundColor DarkGray
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
-    elseif ($choice -eq "0") {
-        $p="$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
-        if(Test-Path $p){ Clear-Content $p -Force }
+  elseif ($choice -eq "0") {
+        # กำหนดพาธไฟล์ประวัติคำสั่งของ PowerShell
+        $p = "$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
+        
+        # 1. ล้างข้อมูลเดิมข้างในไฟล์ (ถ้ามีไฟล์อยู่แล้ว)
+        if (Test-Path $p) { 
+            Clear-Content $p -Force 
+        }
+        
+        # 2. บังคับสร้างไฟล์กลับมาใหม่เป็นไฟล์เปล่า ( overwrite หรือสร้างใหม่ทันที )
+        # ดักจับสคริปต์ให้สร้างโฟลเดอร์ปลายทางก่อนเผื่อกรณีโฟลเดอร์หลุดหาย
+        $parentDir = Split-Path $p
+        if (-not (Test-Path $parentDir)) { 
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null 
+        }
+        
+        # สร้างไฟล์เปล่าขนาด 0 KB กลับคืนระบบ
+        New-Item -ItemType File -Path $p -Force | Out-Null
+        
+        # ออกจากโปรแกรม
         exit
-    }
+     }
 }

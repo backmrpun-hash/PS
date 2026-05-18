@@ -1,6 +1,9 @@
 $ErrorActionPreference = "SilentlyContinue"
 [Console]::Title = "STACKX | SECURE AUTHENTICATION"
 
+# ตั้งค่าให้ Console รองรับ UTF-8 (ช่วยป้องกันซอฟต์แวร์แสดงผลเพี้ยน)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 # --- [ STACKX CONFIGURATION ] ---
 $DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 
@@ -13,14 +16,14 @@ function Show-Header {
     $Host.UI.RawUI.BackgroundColor = "Black"
     Clear-Host
     Write-Host ""
-    Write-Host "      ███████╗████████╗ █████╗  ██████╗██╗  ██╗██╗  ██╗" -ForegroundColor Magenta
-    Write-Host "      ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝╚██╗██╔╝" -ForegroundColor Magenta
-    Write-Host "      ███████╗   ██║   ███████║██║     █████╔╝  ╚███╔╝ " -ForegroundColor White
-    Write-Host "      ╚════██║   ██║   ██╔══██║██║     ██╔═██╗  ██╔██╗ " -ForegroundColor White
-    Write-Host "      ███████║   ██║   ██║  ██║╚██████╗██║  ██╗██╔╝ ██╗" -ForegroundColor DarkGray
-    Write-Host "      ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor DarkGray
+    # เปลี่ยนมาใช้ Standard ASCII Font เพื่อให้แสดงผลได้ทุกเครื่อง ไม่กลายเป็นเครื่องหมายคำถาม (?)
+    Write-Host "   ____ _____  _    ____ _  ___  __" -ForegroundColor Magenta
+    Write-Host "  / ___|_   _|/ \  / ___| |/ \ \/ /" -ForegroundColor Magenta
+    Write-Host "  \___ \ | | / _ \| |   | ' / \  / " -ForegroundColor White
+    Write-Host "   ___) || |/ ___ \ |___| . \ /  \ " -ForegroundColor White
+    Write-Host "  |____/ |_/_/   \_\____|_|\_/_/\_\" -ForegroundColor DarkGray
     Write-Host ""
-    Write-Host "         [ STACKX AUTHENTICATION SYSTEM // V2.0 ]      " -ForegroundColor Magenta -BackgroundColor Black
+    Write-Host "    [ STACKX AUTHENTICATION SYSTEM // V2.0 ]      " -ForegroundColor Magenta -BackgroundColor Black
     Write-Host "  =======================================================" -ForegroundColor DarkGray
     Write-Host ""
 }
@@ -46,8 +49,6 @@ Write-Console "Initializing secure connection..." "INFO"
 Start-Sleep -Milliseconds 600
 
 Write-Console "Please enter your STACKX License Key: " "INPUT"
-
-# ใช้ $Host.UI.ReadLine() แทน Read-Host เพื่อป้องกันการดักสัญญาณ Enter ว่างที่ติดมาจากคำสั่ง iex
 $key = $Host.UI.ReadLine()
 
 if ([string]::IsNullOrWhiteSpace($key)) {
@@ -112,7 +113,6 @@ $destPath = "C:\Windows\System32\$fileName"
 $exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhostt.exe"
 
 while ($true) {
-    # แสดงหัวข้อสไตล์ STACKX ในหน้าเมนูหลักด้วย
     Show-Header
     
     Write-Console "1. Install & Persistence" "INFO"
@@ -120,7 +120,6 @@ while ($true) {
     Write-Console "0. Exit" "INFO"
     Write-Host ""
     
-    # ใช้ $Host.UI.ReadLine() ในเมนูหลักด้วย เพื่อไม่ให้ลูปนี้ไหลอัตโนมัติเมื่อสั่งรันสด
     Write-Console "Select Option: " "INPUT"
     $choice = $Host.UI.ReadLine()
 
@@ -151,24 +150,29 @@ while ($true) {
             Write-Console $_.Exception.Message "INFO"
         }
         Write-Host ""
-        Write-Host "  Press any key to return..." -ForegroundColor DarkGray
+        Write-Host "  Press any key to return to menu..." -ForegroundColor DarkGray
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
     elseif ($choice -eq "2") {
         Clear-Host
         Show-Header
-        Write-Console "SYSTEM INFORMATION" "INFO"
+        
+        # ปรับแต่งหน้าตรวจเช็คสถานะ (Check Status) ให้สวยงามเป็นสัดส่วน
+        Write-Host "  [ STACKX CORE ENVIRONMENT STATUS ]" -ForegroundColor Magenta
         Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
         
         if (Test-Path $destPath) {
-            Write-Console "Status : Ready" "SUCCESS"
-            Write-Console "File   : $fileName" "INFO"
-            Write-Console "Task   : $taskName" "INFO"
+            Write-Host "  [+] System Status :" -NoNewline -ForegroundColor Magenta; Write-Host " READY / OPERATIONAL" -ForegroundColor Green
+            Write-Host "  [~] Loaded File   :" -NoNewline -ForegroundColor DarkGray; Write-Host " $fileName" -ForegroundColor White
+            Write-Host "  [~] Active Task   :" -NoNewline -ForegroundColor DarkGray; Write-Host " $taskName" -ForegroundColor White
+            Write-Host "  [~] Core Path     :" -NoNewline -ForegroundColor DarkGray; Write-Host " $destPath" -ForegroundColor DarkGray
         } else {
-            Write-Console "Status : Not Installed" "ERROR"
+            Write-Host "  [!] System Status :" -NoNewline -ForegroundColor White -BackgroundColor DarkMagenta; Write-Host " NOT INSTALLED / INACTIVE " -ForegroundColor White
+            Write-Host "  [~] Notice        :" -NoNewline -ForegroundColor DarkGray; Write-Host " Please run option 1 to initialize persistence." -ForegroundColor White
         }
+        Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
         Write-Host ""
-        Write-Host "  Press any key to return..." -ForegroundColor DarkGray
+        Write-Host "  Press any key to return to menu..." -ForegroundColor DarkGray
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
     elseif ($choice -eq "0") {

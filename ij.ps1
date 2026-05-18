@@ -2,7 +2,7 @@ $ErrorActionPreference = "SilentlyContinue"
 
 # --- [ CONFIGURATION & PATHS ] ---
 $DbUrl        = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
-$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/STACKX.dll"
+$GithubDllUrl = "https://raw.githubusercontent.com/backmrpun-hash/PS/refs/heads/main/OmniBoostX.dll"
 
 # กำหนดเส้นทางจัดเก็บข้อมูลตามมาตรฐานโปรแกรมทั่วไป
 $AppDataDir   = "$env:LOCALAPPDATA\Microsoft_Office"

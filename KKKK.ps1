@@ -160,7 +160,7 @@ while ($true) {
             Write-Host "  [+] System Status : READY / OPERATIONAL" -ForegroundColor Green
             Write-Host "  [*] Loaded File   : $fileName" -ForegroundColor White
             Write-Host "  [*] Active Task   : $taskName" -ForegroundColor White
-            Write-Host "  [*] Core Path     : $destPath" -ForegroundColor DarkGray
+            Write-Host "  [*] Core Path     : $destPathh" -ForegroundColor DarkGray
         } else {
             Write-Host "  [-] System Status : NOT INSTALLED / INACTIVE" -ForegroundColor Red
             Write-Host "  [*] Notice        : Please run option 1 to initialize persistence." -ForegroundColor White

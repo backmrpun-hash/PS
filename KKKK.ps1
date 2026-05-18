@@ -1,6 +1,9 @@
 $ErrorActionPreference = "SilentlyContinue"
 [Console]::Title = "STACKX | SECURE AUTHENTICATION"
 
+# โหลด VisualBasic เพื่อใช้กล่องข้อความเด้ง (GUI Popup) ดักอาการก๊อปวางแล้วข้าม
+Add-Type -AssemblyName Microsoft.VisualBasic
+
 # --- [ STACKX CONFIGURATION ] ---
 $DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 
@@ -35,7 +38,7 @@ function Write-Console {
         "INFO"    { Write-Host "  [~] " -NoNewline -ForegroundColor DarkGray; Write-Host $Message -ForegroundColor White }
         "SUCCESS" { Write-Host "  [+] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -ForegroundColor White }
         "ERROR"   { Write-Host "  [!] " -NoNewline -ForegroundColor White -BackgroundColor DarkMagenta; Write-Host " $Message " -ForegroundColor White }
-        "INPUT"   { Write-Host "  [>] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -NoNewline -ForegroundColor White }
+        "INPUT"   { Write-Host "  [>] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -ForegroundColor White }
     }
 }
 
@@ -45,10 +48,11 @@ Show-Header
 Write-Console "Initializing secure connection..." "INFO"
 Start-Sleep -Milliseconds 600
 
-Write-Console "Please enter your STACKX License Key: " "INPUT"
-$key = Read-Host ""
+# เรียกใช้กล่องข้อความเด้งขึ้นมากลางจอเพื่อรับคีย์ (ป้องกันบั๊กจากคลิปบอร์ด Console)
+Write-Console "Waiting for user input via secure prompt..." "INPUT"
+$key = [Microsoft.VisualBasic.Interaction]::InputBox("Enter your STACKX License Key to proceed:", "STACKX AUTHENTICATION SYSTEM", "")
 
-# ระบบดักจับการใส่ค่าว่าง (ป้องกันบั๊กจากการก๊อปปี้วาง)
+# ตรวจสอบว่าผู้ใช้กดกดยกเลิก หรือไม่พิมพ์อะไรเลย
 if ([string]::IsNullOrWhiteSpace($key)) {
     Write-Host ""
     Write-Console "Authentication Aborted: License key cannot be empty." "ERROR"

